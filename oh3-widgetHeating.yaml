@@ -43,15 +43,9 @@ props:
       required: false
       type: TEXT
       advanced: true
-    - description: Heating mode strings as array eg. AUTO,MANU,OFF. The string will be send to the Heating-Mode-Item [String-Item]
-      label: Heating Mode Array
-      name: heatingModeArray
-      required: false
-      type: TEXT
-      advanced: true
-    - description: Example Mode Strings as Array eg. OFF,ON,BOOST. The string will be send to the Example-Mode-Item [String-Item]
-      label: Example Mode Array
-      name: exampleModeArray
+    - description: Heating mode follow schedule string eg. FollowSchedule
+      label: Follow Schedule String
+      name: followSchedule
       required: false
       type: TEXT
       advanced: true
@@ -59,20 +53,6 @@ props:
       description: Heating Mode Item [String-Item]
       label: Heating Mode Item
       name: heatingModeItem
-      required: false
-      type: TEXT
-      advanced: true
-    - context: item
-      description: Example Mode Item [String-Item] (eg. State of heating valve)
-      label: Example Mode Item
-      name: exampleModeItem
-      required: false
-      type: TEXT
-      advanced: true
-    - context: item
-      description: Valve Item [Switch-Item] (eg. State of heating valve) for Animation
-      label: Valve Item
-      name: valveItem
       required: false
       type: TEXT
       advanced: true
@@ -162,7 +142,7 @@ props:
 timestamp: Feb 22, 2021, 12:22:59 PM
 component: f7-card
 config:
-  title: "=(props.location) ? 'Klima ' + props.location : ''"
+  title: "=(props.location) ? props.location : ''"
 slots:
   default:
     - component: f7-card-content
@@ -478,12 +458,12 @@ slots:
                               config:
                                 class: buttonContainer
                                 style:
-                                  display: "=props.heatingModeItem ? '' : 'none'"
+                                  display: "=props.heatingModeItem && props.followSchedule ? '' : 'none'"
                                   margin-top: 0px
                                   position: absolute
                                   top: 50%
                                   left: 50%
-                                  transform: "=props.exampleModeItem ? 'translate(-50%, -50%) rotate(30deg)' : 'translate(-50%, -50%)'"
+                                  transform: translate(-50%, -50%)
                                   width: "=props.size ? (Number(props.size)*0.15) +'px' : '15%'"
                                   height: 100%
                                   text-align: center
@@ -494,7 +474,6 @@ slots:
                                 default:
                                   - component: oh-button
                                     config:
-                                      popoverOpen: ='.' + props.location + '.popoverHeatingMode'
                                       style:
                                         width: 100%
                                         height: 20%
@@ -503,139 +482,23 @@ slots:
                                         left: 50%
                                         transform: translate(-50%)
                                         color: "=props.colorButton ? props.colorButton + ' !important': ''"
+                                      action: command
+                                      actionItem: =props.setPointItem
+                                      actionCommand: 0
+
                                     slots:
                                       default:
                                         - component: f7-icon
                                           config:
-                                            f7: "=props.heatingModeItem ? (items[props.heatingModeItem].state ==  props.heatingModeArray.split(',')[0] ? 'hand_raised' : items[props.heatingModeItem].state == props.heatingModeArray.split(',')[1] ? 'arrow_2_squarepath' : items[props.heatingModeItem].state == props.heatingModeArray.split(',')[2] ? 'airplane' : 'thermometer') : ''"
+                                            f7: "=props.heatingModeItem && props.followSchedule ? (items[props.heatingModeItem].state != props.followSchedule ? 'hand_raised' : 'none') : 'none'"
                                             style:
                                               font-size: "=props.fontSizeButtons ? props.fontSizeButtons : '2em'"
                                               position: absolute
                                               transform: translate(-50%, -50%)
                                               top: 50%
                                               margin-top: auto
-                                        - component: f7-popover
-                                          config:
-                                            class: =props.location + ' popoverHeatingMode'
-                                          slots:
-                                            default:
-                                              - component: f7-card
-                                                config:
-                                                  noShadow: true
-                                                  class:
-                                                    - popover-close
-                                                  action: variable
-                                                  actionVariable: myVar
-                                                  clearVariable: true
-                                                  actionVariableValue: success
-                                                slots:
-                                                  default:
-                                                    - component: f7-row
-                                                      config: {}
-                                                      slots:
-                                                        default:
-                                                          - component: f7-col
-                                                            slots:
-                                                              default:
-                                                                - component: oh-repeater
-                                                                  config:
-                                                                    for: buttonlabel
-                                                                    in: =props.heatingModeArray.split(",")
-                                                                    containerStyle:
-                                                                      width: 100%
-                                                                  slots:
-                                                                    default:
-                                                                      - component: oh-button
-                                                                        config:
-                                                                          color: "=props.colorButton ? props.colorButton : ''"
-                                                                          class: margin
-                                                                          text: =loop.buttonlabel
-                                                                          outline: true
-                                                                          action: command
-                                                                          active: "=props.heatingModeItem ? (items[props.heatingModeItem].state === loop.buttonlabel ? true : false) : ''"
-                                                                          actionCommand: =loop.buttonlabel
-                                                                          actionItem: "=props.heatingModeItem ? props.heatingModeItem : ''"
-                            - component: f7-block
-                              config:
-                                class: buttonContainer
-                                style:
-                                  display: "=props.exampleModeItem ? '' : 'none'"
-                                  margin-top: 0px
-                                  position: absolute
-                                  top: 50%
-                                  left: 50%
-                                  transform: "=props.heatingModeItem ? 'translate(-50%, -50%) rotate(-30deg)' : 'translate(-50%, -50%)'"
-                                  width: "=props.size ? (Number(props.size)*0.15) +'px' : '15%'"
-                                  height: 100%
-                                  text-align: center
-                                  transition: 0.7s ease
-                                  opacity: 1
-                                  z-index: 99 !important
-                              slots:
-                                default:
-                                  - component: oh-button
-                                    config:
-                                      popoverOpen: ='.' + props.location + '.popoverExampleMode'
-                                      style:
-                                        width: 100%
-                                        height: 20%
-                                        position: absolute
-                                        bottom: 0%
-                                        left: 50%
-                                        transform: translate(-50%)
-                                        color: "=props.colorButton ? props.colorButton + ' !important': ''"
-                                    slots:
-                                      default:
-                                        - component: f7-icon
-                                          config:
-                                            f7: wrench
-                                            style:
-                                              font-size: "=props.fontSizeButtons ? props.fontSizeButtons : '2em'"
-                                              position: absolute
-                                              transform: translate(-50%, -50%)
-                                              top: 50%
-                                              margin-top: auto
-                                        - component: f7-popover
-                                          config:
-                                            class: =props.location + ' popoverExampleMode'
-                                          slots:
-                                            default:
-                                              - component: f7-card
-                                                config:
-                                                  noShadow: true
-                                                  class:
-                                                    - popover-close
-                                                  action: variable
-                                                  actionVariable: myVar
-                                                  clearVariable: true
-                                                  actionVariableValue: success
-                                                slots:
-                                                  default:
-                                                    - component: f7-row
-                                                      config: {}
-                                                      slots:
-                                                        default:
-                                                          - component: f7-col
-                                                            slots:
-                                                              default:
-                                                                - component: oh-repeater
-                                                                  config:
-                                                                    for: buttonlabel
-                                                                    in: =props.exampleModeArray.split(",")
-                                                                    containerStyle:
-                                                                      width: 100%
-                                                                  slots:
-                                                                    default:
-                                                                      - component: oh-button
-                                                                        config:
-                                                                          color: "=props.colorButton ? props.colorButton : ''"
-                                                                          class: margin
-                                                                          text: =loop.buttonlabel
-                                                                          outline: true
-                                                                          action: command
-                                                                          active: "=props.exampleModeItem ? (items[props.exampleModeItem].state === loop.buttonlabel ? true : false) : ''"
-                                                                          actionCommand: =loop.buttonlabel
-                                                                          actionItem: "=props.exampleModeItem ? props.exampleModeItem : ''"
+                                        
+ 
                             - component: oh-button
                               config:
                                 style:
@@ -688,23 +551,6 @@ slots:
                                       f7: arrow_turn_right_up
                             - component: f7-block
                               config:
-                                class: valveAnimation
-                                style:
-                                  z-index: -100 !important
-                                  pointer-events: none
-                                  display: "=(props.valveItem && items[props.valveItem].state == 'ON' )? '' : 'none'"
-                                  background: "=props.colorSetMarker ? 'radial-gradient(' + props.colorSetMarker +' 30%, transparent 50%)' : 'radial-gradient(var(--f7-theme-color) 30%, transparent 50%)'"
-                                  margin-top: 0px
-                                  position: absolute
-                                  transform: translate(-50%, -50%)
-                                  width: 100%
-                                  height: 100%
-                                  top: 50%
-                                  left: 50%
-                                  border-radius: 50%
-                                  animation: skeleton-effect-fade 2s linear infinite
-                            - component: f7-block
-                              config:
                                 class: small
                                 style:
                                   z-index: 100 !important
@@ -746,11 +592,3 @@ slots:
                                         - component: Label
                                           config:
                                             text: "=props.unit ? items[props.setPointItem].state.split(' ')[0] + '' + props.unit : items[props.setPointItem].state.split(' ')[0]"
-                                  - component: oh-image
-                                    config:
-                                      url: "=props.imgUrl ? props.imgUrl : 'https://community-openhab-org.s3-eu-central-1.amazonaws.com/original/2X/7/7d388a86c95471f89b1bb911d96d7609a3e3a059.svg'"
-                                      style:
-                                        position: absolute
-                                        transform: translate(-50%)
-                                        left: 50%
-                                        width: 40%
